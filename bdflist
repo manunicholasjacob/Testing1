@@ -1,0 +1,55 @@
+import subprocess
+
+def execute_shell_command(command):
+    try:
+        output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, text=True)
+        return output
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing the command: {e.output}")
+        return None
+
+def read_header(line):
+    # Implement your logic to extract the header information
+    # For example, assuming the header is the first 10 characters:
+    return line[:10]
+
+def read_slot_capabilities(line):
+    # Implement your logic to extract slot capabilities
+    # For example, assuming the capabilities are the last 4 characters:
+    return line[-4:]
+
+def hex_to_binary(hex_string):
+    # Remove any non-hexadecimal characters (e.g., periods)
+    cleaned_hex_string = hex_string.replace('.', '')
+
+    # Convert cleaned_hex_string to binary
+    binary_result = bin(int(cleaned_hex_string, 16))[2:]
+    return binary_result
+
+command_output = execute_shell_command("lspci | cut -d ' ' -f 1")
+
+if command_output:
+    split_numbers = command_output.split('\n')
+    split_numbers = [num for num in split_numbers if num]
+
+    listbdf = []
+    for i in range(len(split_numbers)):
+        header = read_header(split_numbers[i])
+        if header[-1] == '1':
+            a = read_slot_capabilities(split_numbers[i])
+            b = hex_to_binary(a)
+            c = b[0:13]
+            d = int(c, 2)
+            if d > 0:
+                print(split_numbers[i], header)
+                print(f"Slot number: {d}")
+                listbdf.append(split_numbers[i])
+            else:
+                pass
+        else:
+            pass
+
+    print("List of BDFs:")
+    print(listbdf)
+else:
+    print("Error executing the command. Check if 'lspci' is available.")
