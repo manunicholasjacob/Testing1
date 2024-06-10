@@ -1,0 +1,8 @@
+import subprocess
+
+try:
+    # Run the 'lspci | cut -d ' ' -f 1' command in the terminal
+    output = subprocess.check_output("lspci | cut -d ' ' -f 1", shell=True, stderr=subprocess.STDOUT, text=True)
+    print(output)
+except subprocess.CalledProcessError as e:
+    print(f"Error executing the command: {e.output}")
