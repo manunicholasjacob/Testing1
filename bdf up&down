@@ -2,36 +2,35 @@ import subprocess
 
 def execute_shell_command(command):
     try:
-        output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, text=True)
-        return output
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing the command: {e.output}")
-        return None
+        # Execute the shell command
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode == 0:
+            # Successful execution
+            return result.stdout.decode("utf-8").strip()  # Decode bytes to string
+        else:
+            # Error occurred
+            return f"Error: {result.stderr.decode('utf-8').strip()}"  # Decode bytes to string
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-def read_header(line):
-    # Implement your logic to extract the header information
-    # For example, assuming the header is the first 10 characters:
-    return line[:10]
-
-def read_slot_capabilities(line):
-    # Implement your logic to extract slot capabilities
-    # For example, assuming the capabilities are the last 4 characters:
-    return line[-4:]
-
-def hex_to_binary(hex_string):
-    # Remove any non-hexadecimal characters (e.g., periods)
-    cleaned_hex_string = hex_string.replace('.', '')
-
-    # Convert cleaned_hex_string to binary
-    binary_result = bin(int(cleaned_hex_string, 16))[2:]
-    return binary_result
-
-def read_secondary_bus_number(bus):
+def read_header(bus):
     try:
-        secondary_bus_output = subprocess.check_output(["setpci", "-s", bus, "19.b"])
-        return secondary_bus_output.decode().strip()
+        bridge_control_output = subprocess.check_output(["setpci", "-s", bus, "0e.w"])
+        return f"{bus} : {bridge_control_output.decode().strip()}"
+    except subprocess.CalledProcessError:
+        return f"Error reading Bridge Control for {bus}."
+
+def read_slot_capabilities(bus):
+    try:
+        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "a4.l"])
+        return slot_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
+
+def hex_to_binary(hex_string):
+    # Convert hexadecimal string to binary (with leading zeros)
+    binary_string = format(int(hex_string, 16), '032b')
+    return binary_string
 
 command_output = execute_shell_command("lspci | cut -d ' ' -f 1")
 
@@ -49,6 +48,7 @@ if command_output:
             d = int(c, 2)
             if d > 0:
                 print(split_numbers[i], header)
+                print(read_slot_capabilities(split_numbers[i]))
                 print(f"Slot number: {d}")
                 listbdf.append(split_numbers[i])
             else:
@@ -56,18 +56,34 @@ if command_output:
         else:
             pass
 
-    print("List of BDFs:")
+    print("List of BDFs with header 1:")
     print(listbdf)
 
-    # Create a list of downstream BDFs
     listbdfdown = []
-    for downstream in listbdf:
-        secondary_bus = read_secondary_bus_number(downstream)
-        if secondary_bus:
-            downstream_bdf = f"{secondary_bus}:00.0"
-            listbdfdown.append(downstream_bdf)
+    for i in range(len(listbdf)):
+        downstream = listbdf[i]
+        a = int(downstream[0:2], 16)
+        b = str(hex(a + 1)[2:4])
+        c = b + ":00.0"
+        listbdfdown.append(c)
 
     print("List of downstream BDFs:")
     print(listbdfdown)
+
+    # Additional information for downstream BDFs
+    for downstream in listbdfdown:
+        secondary_bus = read_secondary_bus_number(downstream)
+        if secondary_bus:
+            bridge_control = read_bridge_control(downstream)
+            link_status = read_link_status(downstream)
+            link_capabilities17 = read_link_capabilities17(downstream)
+            link_capabilities18 = read_link_capabilities18(downstream)
+            print(f"Downstream BDF: {downstream}")
+            print(f"Secondary Bus: {secondary_bus}")
+            print(f"Bridge Control: {bridge_control}")
+            print(f"Link Status: {link_status}")
+            print(f"Link Capabilities (17): {link_capabilities17}")
+            print(f"Link Capabilities (18): {link_capabilities18}")
+            print("-" * 40)
 else:
     print("Error executing the command. Check if 'lspci' is available.")
