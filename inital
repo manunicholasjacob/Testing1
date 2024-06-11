@@ -25,7 +25,7 @@ def read_bridge_control(bus):
 
 def read_link_status(bus):
     try:
-        link_status_output = subprocess.check_output(["setpci", "-s", bus, "8a.w"])
+        link_status_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0x12.w"])
         return link_status_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
@@ -100,6 +100,7 @@ try:
     # Iterate over each line and append it to the list
     for line in lines:
         pci_list.append(line.strip())
+    
     
     slotnumbers = []
     
