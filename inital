@@ -32,7 +32,7 @@ def read_link_status(bus):
 
 def read_slot_capabilities(bus):
     try:
-        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "7c.l"])
+        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0x14.l"])
         return slot_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
@@ -41,14 +41,14 @@ def read_slot_capabilities(bus):
 
 def read_link_capabilitiesup(bus):
     try:
-        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "74.l"])
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0x0c.l"])
         return link_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
 
 def read_link_capabilitiesdown(bus):
     try:
-        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "74.l"])
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0x0c.l"])
         return link_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
