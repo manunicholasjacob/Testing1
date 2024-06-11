@@ -1,1 +1,49 @@
+import subprocess
 
+def read_header(bus):
+    try:
+        # Read the Bridge Control for the given bus
+        bridge_control_output = subprocess.check_output(["setpci", "-s", bus, "0e.w"])
+        bridge_control_value = int(bridge_control_output.decode().strip(), 16)
+        
+        # Check if the last bit of the header number is 1
+        if bridge_control_value & 1:
+            return f"{bus} : {bridge_control_value:04x}"
+        else:
+            return None
+    except subprocess.CalledProcessError:
+        return f"Error reading Bridge Control for {bus}."
+
+def read_secondary_bus_number(bus):
+    try:
+        # Read the Secondary Bus Number for the given bus
+        secondary_bus_output = subprocess.check_output(["setpci", "-s", bus, "19.b"])
+        return secondary_bus_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+try:
+    # Run the 'lspci | cut -d ' ' -f 1' command in the terminal
+    output = subprocess.check_output("lspci | cut -d ' ' -f 1", shell=True, stderr=subprocess.STDOUT, text=True)
+    bus_list = output.strip().split("\n")
+    
+    # Read the header for each bus and append the BDF numbers to a list
+    bdf_numbers = []
+    for bus in bus_list:
+        result = read_header(bus)
+        if result:
+            bdf_numbers.append(result)
+    
+    # Find the Secondary Bus Number for each BDF
+    secondary_bus_numbers = {}
+    for bdf in bdf_numbers:
+        bus = bdf.split(" : ")[0]
+        secondary_bus = read_secondary_bus_number(bus)
+        if secondary_bus:
+            secondary_bus_numbers[bdf] = secondary_bus
+    
+    # Print the Secondary Bus Numbers
+    for bdf, secondary_bus in secondary_bus_numbers.items():
+        print(f"Secondary Bus Number for {bdf}: {secondary_bus}")
+except subprocess.CalledProcessError as e:
+    print(f"Error executing the command: {e.output}")
