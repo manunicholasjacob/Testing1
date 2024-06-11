@@ -1,0 +1,33 @@
+import subprocess
+
+def read_header(bus):
+    try:
+        # Read the Bridge Control for the given bus
+        bridge_control_output = subprocess.check_output(["setpci", "-s", bus, "0e.w"])
+        bridge_control_value = int(bridge_control_output.decode().strip(), 16)
+        
+        # Check if the last bit of the header number is 1
+        if bridge_control_value & 1:
+            return f"{bus} : {bridge_control_value:04x}"
+        else:
+            return None
+    except subprocess.CalledProcessError:
+        return f"Error reading Bridge Control for {bus}."
+
+try:
+    # Run the 'lspci | cut -d ' ' -f 1' command in the terminal
+    output = subprocess.check_output("lspci | cut -d ' ' -f 1", shell=True, stderr=subprocess.STDOUT, text=True)
+    bus_list = output.strip().split("\n")
+    
+    # Read the header for each bus and print the BDF numbers if the last bit of the header number is 1
+    bdf_numbers = []
+    for bus in bus_list:
+        result = read_header(bus)
+        if result:
+            bdf_numbers.append(result)
+    
+    # Print the BDF numbers
+    for bdf in bdf_numbers:
+        print(bdf)
+except subprocess.CalledProcessError as e:
+    print(f"Error executing the command: {e.output}")
