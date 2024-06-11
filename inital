@@ -74,8 +74,10 @@ def extract_link_capabilities(hex_string):
     binary_string = convert_hex_to_binary(hex_string)
     
     # Extract maximum link width and maximum link speed
-    max_link_width = int(binary_string[len(binary_string)-3:len(binary_string)], 2)
-    max_link_speed = int(binary_string[len(binary_string)-9:len(binary_string)-4], 2)
+    max_link_width_binary = binary_string[len(binary_string)-3:len(binary_string)]
+    max_link_width = int(max_link_width_binary, 2)
+    max_link_speed_binary = binary_string[len(binary_string)-9:len(binary_string)-4]
+    max_link_speed = int(max_link_speed_binary, 2)
     
     return max_link_width, max_link_speed
     
