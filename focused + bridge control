@@ -1,9 +1,3 @@
-Thank you for sharing the existing code! Let’s enhance it to read the Bridge Control for each of the upstream and downstream BDFs. We’ll create a new list called bridge_controls to store the results.
-
-Here’s the modified code:
-
-Python
-
 import subprocess
 
 def read_header(bus):
@@ -66,5 +60,3 @@ try:
         print(f"Bridge Control for {bdf}: {control}")
 except subprocess.CalledProcessError as e:
     print(f"Error executing the command: {e.output}")
-AI-generated code. Review and use carefully. More info on FAQ.
-This modified code will populate bridge_controls with the Bridge Control values for each upstream and downstream BDF. Feel free to test it, and let me know if you have any further questions or need additional assistance! 😊
