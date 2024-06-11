@@ -1,0 +1,34 @@
+import subprocess
+
+def read_header(bus):
+    try:
+        bridge_control_output = subprocess.check_output(["setpci", "-s", bus, "0e.w"])
+        return bridge_control_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+try:
+    # Run the 'lspci | cut -d ' ' -f 1' command in the terminal
+    output = subprocess.check_output("lspci | cut -d ' ' -f 1", shell=True, stderr=subprocess.STDOUT)
+    # Decode bytes object to string
+    output = output.decode('utf-8')
+    # Split the string into lines
+    lines = output.strip().split('\n')
+    # Initialize an empty list
+    pci_list = []
+    # Iterate over each line and append it to the list
+    for line in lines:
+        pci_list.append(line.strip())
+    
+    # Create a new list called listbdf with elements having header number's last bit as 1
+    listbdf = []
+    for item in pci_list:
+        header = read_header(item)
+        if header and int(header, 16) & 1:
+            listbdf.append(item)
+    
+    # Print the individual items of listbdf
+    for bdf in listbdf:
+        print(bdf)
+except subprocess.CalledProcessError as e:
+    print(f"Error executing the command: {e.output}")
