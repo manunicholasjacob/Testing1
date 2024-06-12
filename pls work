@@ -1,0 +1,337 @@
+import subprocess
+import getpass
+import time
+
+def read_header(bus):
+    try:
+        bridge_control_output = subprocess.check_output(["setpci", "-s", bus, "0e.w"])
+        return(f" : {bridge_control_output.decode().strip()}")
+    except subprocess.CalledProcessError:
+        return(f"Error reading Bridge Control for {bus}.")
+
+def read_slot_capabilities(bus):
+    try:
+        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "a4.l"])
+        return slot_capabilities_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+    
+def read_slot_capabilities(bus):
+    try:
+        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X14.l"])
+        return slot_capabilities_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+    
+def execute_shell_command(command):
+    try:
+        # Execute the shell command
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode == 0:
+            # Successful execution
+            return result.stdout.decode("utf-8").strip()  # Decode bytes to string
+        else:
+           
+            return f"Error: {result.stderr.decode('utf-8').strip()}"  # Decode bytes to string
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+def hex_to_binary(hex_string):
+    # Convert hexadecimal string to binary (with leading zeros)
+    binary_string = format(int(hex_string, 16), '032b')
+    return binary_string
+
+# Execute the given shell command
+command_output = execute_shell_command("lspci | cut -d ' ' -f 1")
+
+# Print the output
+#print(command_output)
+
+split_numbers = command_output.split('\n')
+split_numbers = [num for num in split_numbers if num]
+
+slotnumbers = []
+
+# Print the resulting list
+#print(split_numbers)
+listbdf = []
+for i in range(len(split_numbers)):
+    header = read_header(split_numbers[i])
+    if header[-1] =='1':
+        
+
+        a = read_slot_capabilities(split_numbers[i])
+
+        b = hex_to_binary(a)
+
+        c = b[0:13]
+
+        d = int(c,2)
+        if d >0:
+            print(split_numbers[i],header)
+            print(read_slot_capabilities(split_numbers[i]))
+            print(f"Slot number: {d}")
+            listbdf.append(split_numbers[i])
+            slotnumbers.append(d)
+        else:
+            pass
+    else:
+        pass
+
+print(listbdf)
+
+listbdfdown = []
+
+for i in range(len(listbdf)):
+    downstream = listbdf[i]
+    a = int(downstream[0:2],16)
+    b = str(hex(a+1)[2:4])
+    c = b + ":00.0"
+    listbdfdown.append(c)
+
+print(listbdfdown)
+
+
+def read_bridge_control(bus):
+    try:
+        bridge_control_output = subprocess.check_output(["setpci", "-s", bus, "3e.w"])
+        return bridge_control_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+def read_link_status(bus):
+    try:
+        link_status_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X12.w"])
+        return link_status_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+
+
+def read_link_capabilities17(bus):
+    try:
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X0c.l"])
+        return link_capabilities_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+def read_link_capabilities18(bus):
+    try:
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X0c.l"])
+        return link_capabilities_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+def read_secondary_bus_number(bus):
+    try:
+        secondary_bus_output = subprocess.check_output(["setpci", "-s", bus, "19.b"])
+        return secondary_bus_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
+def set_bridge_control(bus, value, password):
+    try:
+        subprocess.run(["sudo", "-S", "setpci", "-s", bus, "3e.w=" + value], input=password.encode(), check=True)
+        print(f"Set Bridge Control for {bus} to {value}")
+    except subprocess.CalledProcessError:
+        print(f"Error setting Bridge Control for {bus}.")
+        
+        
+
+
+def format_bdf(bus):
+    # Extract bus number
+    bus_number = bus.split(":")[0]
+    return f"{bus_number}:0.0"
+
+
+def convert_hex_to_binary(hex_string):
+    # Convert hexadecimal string to integer
+    decimal_value = int(hex_string, 16)
+    
+    # Convert integer to binary string
+    binary_string = bin(decimal_value)[0:]  # Remove the '0b' prefix
+    
+    return binary_string
+
+def extract_link_capabilities(hex_string):
+    # Convert hexadecimal string to binary
+    binary_string = convert_hex_to_binary(hex_string)
+    
+    # Extract maximum link width and maximum link speed
+    max_link_width = int(binary_string[len(binary_string)-3:len(binary_string)], 2)
+    max_link_speed = int(binary_string[len(binary_string)-9:len(binary_string)-4], 2)
+    
+    return max_link_width, max_link_speed
+
+# Example usage
+#hex_link_capabilities = "0x1A"  # Replace with your actual hexadecimal link capabilities
+#max_width17, max_speed17 = extract_link_capabilities(hex_link_capabilities)
+
+#print(f"Maximum Link Width: {max_width}")
+#print(f"Maximum Link Speed: {max_speed}")
+
+
+
+if __name__ == "__main__":
+    
+    user_password = getpass.getpass("Enter your password (sudo access): ")
+
+    Exp_Upstream_gen = []
+    Exp_Upstream_speed = []
+    Exp_Downstream_gen = []
+    Exp_Downstream_speed = []
+    bridge_control_values = []
+
+    inputnum_loops = int(input("Number of Loops: "))  # Number of loops
+    num_loops = 2*inputnum_loops+1
+    kill=input("Do you want to kill on error? (y/n) :")
+    slotchoice = input("Do you want to test all slots (y/n): ")
+    
+    for i in range(len(listbdf)):
+        
+        specific_bus_bridge = listbdf[i] # Bridge control bus address
+        specific_bus_link = listbdfdown[i]   # Link status bus address
+
+
+        max_width17, max_speed17 = extract_link_capabilities(read_link_capabilities17(specific_bus_bridge))
+        max_width18, max_speed18 = extract_link_capabilities(read_link_capabilities18(specific_bus_link))
+
+        Exp_Upstream_gen.append(max_width17)
+        Exp_Upstream_speed.append(max_speed17)
+        Exp_Downstream_gen.append(max_width18)
+        Exp_Downstream_speed.append(max_speed18)
+        bridge_control_values.append(read_bridge_control(listbdf[i]))
+        
+
+    
+
+    if slotchoice =="y":
+        
+        for i in range(num_loops):
+        
+            for j in range(len(listbdf)):
+
+                specific_bus_bridge = listbdf[j] # Bridge control bus address
+                specific_bus_link = listbdfdown[j]   # Link status bus address
+                desired_values = [bridge_control_values[j], "0043"]  # Alternating values   
+
+                desired_value = desired_values[i % len(desired_values)]
+                current_bridge_control = read_bridge_control(specific_bus_bridge)
+                current_link_status = read_link_status(specific_bus_link)
+                current_slot_capabilities = read_slot_capabilities(specific_bus_bridge)
+                current_link_capabilities17 = read_link_capabilities17(specific_bus_bridge)
+                current_link_capabilities18 = read_link_capabilities18(specific_bus_link)
+                secondary_bus_number = read_secondary_bus_number(specific_bus_bridge)
+                max_width17, max_speed17 = extract_link_capabilities(read_link_capabilities17(specific_bus_bridge))
+                max_width18, max_speed18 = extract_link_capabilities(read_link_capabilities18(specific_bus_link))
+
+                
+                
+                set_bridge_control(specific_bus_bridge, desired_value, user_password)
+                
+            if i%2 ==0:
+                
+                if max_width18 == Exp_Upstream_gen[j] or Exp_Downstream_gen[j]:
+                    pass
+                else:
+                    print("width difference")
+                    if kill =="y":
+                        break
+                    else:
+                        pass
+
+                if max_speed18 == Exp_Upstream_speed[j] or Exp_Downstream_speed[j]:
+                    pass
+                else:
+                    print("speed difference")
+                    if kill =="y":
+                        break
+                    else:
+                        pass
+                    
+            else:
+                pass
+                
+                    # Wait for a moment 
+            time.sleep(0.3)
+    else:
+        print("choose slotnumbers among following",slotnumbers)
+        slotlist =[]
+        indexlist=[]
+        choose_slot = int(input("enter slots you want to test: "))
+        slotlist.append(choose_slot)
+        newbdflist=[]
+        choose_more_slots = input("Do you want to choose more slots (y/n): ")
+        while choose_more_slots =="y":
+            choose_slot = int(input("enter slots you want to test: "))
+            slotlist.append(choose_slot)
+            choose_more_slots = input("Do you want to choose more slots (y/n): ")
+        
+        for i in range(len(slotlist)):
+            
+            indexlist.append(slotnumbers.index(slotlist[i]))
+            
+            #print(listbdf[indexlist[i]])
+            
+            
+            
+        for i in range(num_loops):
+        
+            for j in range(len(indexlist)):
+
+                specific_bus_bridge = listbdf[indexlist[j]] # Bridge control bus address
+                specific_bus_link = listbdfdown[indexlist[j]]   # Link status bus address
+                desired_values = [bridge_control_values[indexlist[j]], "0043"]  # Alternating values   
+
+                desired_value = desired_values[i % len(desired_values)]
+                current_bridge_control = read_bridge_control(specific_bus_bridge)
+                current_link_status = read_link_status(specific_bus_link)
+                current_slot_capabilities = read_slot_capabilities(specific_bus_bridge)
+                current_link_capabilities17 = read_link_capabilities17(specific_bus_bridge)
+                current_link_capabilities18 = read_link_capabilities18(specific_bus_link)
+                secondary_bus_number = read_secondary_bus_number(specific_bus_bridge)
+                max_width17, max_speed17 = extract_link_capabilities(read_link_capabilities17(specific_bus_bridge))
+                max_width18, max_speed18 = extract_link_capabilities(read_link_capabilities18(specific_bus_link))
+
+                
+                
+                set_bridge_control(specific_bus_bridge, desired_value, user_password)
+                
+            if i%2 ==0:
+                
+                if max_width18 == Exp_Upstream_gen[indexlist[j]] or Exp_Downstream_gen[indexlist[j]]:
+                    pass
+                else:
+                    print("width difference")
+                    if kill =="y":
+                        break
+                    else:
+                        pass
+
+                if max_speed18 == Exp_Upstream_speed[indexlist[j]] or Exp_Downstream_speed[indexlist[j]]:
+                    pass
+                else:
+                    print("speed difference")
+                    if kill =="y":
+                        break
+                    else:
+                        pass
+                    
+            else:
+                pass
+                
+                    # Wait for a moment 
+            time.sleep(0.3)            
+
+
+
+
+            
+            #print("Implementation to be completed")
+
+    print(Exp_Upstream_gen)
+    print(Exp_Upstream_speed)
+    print(Exp_Downstream_gen)
+    print(Exp_Downstream_speed)
+    print("Loop completed. Output written to output.txt.")
