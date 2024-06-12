@@ -14,13 +14,6 @@ def read_slot_capabilities(bus):
     except subprocess.CalledProcessError:
         return None
 
-def read_secondary_bus_number(bus):
-    try:
-        secondary_bus_output = subprocess.check_output(["setpci", "-s", bus, "19.b"])
-        return secondary_bus_output.decode().strip()
-    except subprocess.CalledProcessError:
-        return None
-
 def execute_shell_command(command):
     try:
         # Execute the shell command
@@ -38,6 +31,13 @@ def hex_to_binary(hex_string):
     # Convert hexadecimal string to binary (with leading zeros)
     binary_string = format(int(hex_string, 16), '032b')
     return binary_string
+
+def read_secondary_bus_number(bus):
+    try:
+        secondary_bus_output = subprocess.check_output(["setpci", "-s", bus, "19.b"])
+        return secondary_bus_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
 
 # Execute the given shell command
 command_output = execute_shell_command("lspci | cut -d ' ' -f 1")
