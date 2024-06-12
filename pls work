@@ -14,6 +14,13 @@ def read_slot_capabilities(bus):
     except subprocess.CalledProcessError:
         return None
 
+def read_secondary_bus_number(bus):
+    try:
+        secondary_bus_output = subprocess.check_output(["setpci", "-s", bus, "19.b"])
+        return secondary_bus_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
+
 def execute_shell_command(command):
     try:
         # Execute the shell command
@@ -75,9 +82,10 @@ listbdfdown = []
 
 for i in range(len(listbdf)):
     downstream = listbdf[i]
+    secondary_bus = read_secondary_bus_number(downstream)
     a = int(downstream[0:2],16)
     b = str(hex(a+1)[2:4])
-    c = b + ":00.0"
+    c = (f"{secondary_bus}:00.0")
     listbdfdown.append(c)
 
 print(listbdfdown)
