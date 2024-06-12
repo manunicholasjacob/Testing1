@@ -103,28 +103,28 @@ def read_bridge_control(bus):
 
 def read_link_status(bus):
     try:
-        link_status_output = subprocess.check_output(["setpci", "-s", bus, "8a.w"])
+        link_status_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X12.w"])
         return link_status_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
 
 def read_slot_capabilities(bus):
     try:
-        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "a8.l"])
+        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X14.l"])
         return slot_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
 
 def read_link_capabilities17(bus):
     try:
-        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "9c.l"])
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X0c.l"])
         return link_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
 
 def read_link_capabilities18(bus):
     try:
-        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "84.l"])
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X0c.l"])
         return link_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
