@@ -1,6 +1,4 @@
 import subprocess
-import getpass
-import time
 
 def read_header(bus):
     try:
@@ -11,18 +9,11 @@ def read_header(bus):
 
 def read_slot_capabilities(bus):
     try:
-        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "a4.l"])
-        return slot_capabilities_output.decode().strip()
-    except subprocess.CalledProcessError:
-        return None
-    
-def read_slot_capabilities(bus):
-    try:
         slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X14.l"])
         return slot_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
-    
+
 def execute_shell_command(command):
     try:
         # Execute the shell command
@@ -31,7 +22,7 @@ def execute_shell_command(command):
             # Successful execution
             return result.stdout.decode("utf-8").strip()  # Decode bytes to string
         else:
-           
+            # Error occurredhttps://github.com/manunicholasjacob/Testing/blob/main/getbdf2
             return f"Error: {result.stderr.decode('utf-8').strip()}"  # Decode bytes to string
     except Exception as e:
         return f"Error: {str(e)}"
@@ -91,6 +82,9 @@ for i in range(len(listbdf)):
 
 print(listbdfdown)
 
+import subprocess
+import getpass
+import time
 
 def read_bridge_control(bus):
     try:
@@ -101,23 +95,28 @@ def read_bridge_control(bus):
 
 def read_link_status(bus):
     try:
-        link_status_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X12.w"])
+        link_status_output = subprocess.check_output(["setpci", "-s", bus, "8a.w"])
         return link_status_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
 
-
+def read_slot_capabilities(bus):
+    try:
+        slot_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "a8.l"])
+        return slot_capabilities_output.decode().strip()
+    except subprocess.CalledProcessError:
+        return None
 
 def read_link_capabilities17(bus):
     try:
-        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X0c.l"])
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "9c.l"])
         return link_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
 
 def read_link_capabilities18(bus):
     try:
-        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "CAP_EXP+0X0c.l"])
+        link_capabilities_output = subprocess.check_output(["setpci", "-s", bus, "84.l"])
         return link_capabilities_output.decode().strip()
     except subprocess.CalledProcessError:
         return None
