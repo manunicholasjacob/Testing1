@@ -288,25 +288,25 @@ if __name__ == "__main__":
             
             
         for i in range(num_loops):
-        
+            indexiterate = 0
             for j in indexlist:
 
                 specific_bus_bridge = listbdf[j] # Bridge control bus address
                 specific_bus_link = listbdfdown[j]   # Link status bus address
                 print(j)
                 print(read_bridge_control(listbdf[j]))
-                desired_values = [bridgecontrollist(0), "0043"]  # Alternating values   
+                desired_values = [bridgecontrollist[indexiterate], "0043"]  # Alternating values   
 
                 desired_value = desired_values[i % len(desired_values)]
                 
-
+                indexiterate += 1
                 f = 1
                 
                 set_bridge_control(specific_bus_bridge, desired_value, user_password)
                 
             if i%2 == 1 :
                 
-                if f == 1: # max_width18 == Exp_Upstream_gen[indexlist[j]] or Exp_Downstream_gen[indexlist[j]]:
+                if f == 0: # max_width18 == Exp_Upstream_gen[indexlist[j]] or Exp_Downstream_gen[indexlist[j]]:
                     current_bridge_control = read_bridge_control(specific_bus_bridge)
                     current_link_status = read_link_status(specific_bus_link)
                     current_slot_capabilities = read_slot_capabilities(specific_bus_bridge)
@@ -317,7 +317,7 @@ if __name__ == "__main__":
                     max_width18, max_speed18 = extract_link_capabilities(read_link_capabilities18(specific_bus_link))
                     pass
                 else:
-                    print("width difference")
+                    #print("width difference")
                     if kill =="y":
                         break
                     else:
