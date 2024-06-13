@@ -268,6 +268,7 @@ if __name__ == "__main__":
         print("choose slotnumbers among following",slotnumbers)
         slotlist =[]
         indexlist=[]
+        bridgecontrollist = []
         choose_slot = int(input("enter slots you want to test: "))
         slotlist.append(choose_slot)
         newbdflist=[]
@@ -280,6 +281,7 @@ if __name__ == "__main__":
         for i in range(len(slotlist)):
             
             indexlist.append(slotnumbers.index(slotlist[i]))
+            bridgecontrollist.appened(read_bridge_control(listbdf[i]))
             
             print(indexlist[i])
             
@@ -293,7 +295,7 @@ if __name__ == "__main__":
                 specific_bus_link = listbdfdown[j]   # Link status bus address
                 print(j)
                 print(read_bridge_control(listbdf[j]))
-                desired_values = [read_bridge_control(listbdf[j]), "0043"]  # Alternating values   
+                desired_values = [bridgecontrollist(0), "0043"]  # Alternating values   
 
                 desired_value = desired_values[i % len(desired_values)]
                 
