@@ -299,7 +299,7 @@ if __name__ == "__main__":
 
                 desired_value = desired_values[i % len(desired_values)]
                 
-                indexiterate += 1
+                
                 f = 1
                 
                 set_bridge_control(specific_bus_bridge, desired_value, user_password)
