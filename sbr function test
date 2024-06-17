@@ -208,7 +208,7 @@ def main():
                 set_bridge_control(specific_bus_bridge, desired_value, user_password)
                 time.sleep(0.3)
                 if i % 2 == 0:
-                    if f == 1:
+                    if kill == "n":
                         current_bridge_control = read_bridge_control(specific_bus_bridge)
                         current_link_status = read_link_status(specific_bus_link)
                         current_slot_capabilities = read_slot_capabilities(specific_bus_bridge)
